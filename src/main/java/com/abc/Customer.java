@@ -26,6 +26,8 @@ public class Customer {
     public int getNumberOfAccounts() {
         return accounts.size();
     }
+    
+   
 
     public double totalInterestEarned() {
         double total = 0;
@@ -45,7 +47,75 @@ public class Customer {
         statement += "\nTotal In All Accounts " + toDollars(total);
         return statement;
     }
+    
+    public synchronized String transferFromCheckingtoSavings(double amount) {
+    	String s = "";
+    	if (amount < 0) {
+    		return "transfer amount cannot be less than 0";
+    	}
+    	boolean checkingAccExists = false;
+    	Account checkingType = null;
+    	Account savingType = null;
+    	boolean savingAccExists = false;
+    	 for (Account a : accounts) {
+    		if (a.getAccountType() == Account.CHECKING) {
+    			checkingAccExists = true;
+    			checkingType = a;
+    		} else if (a.getAccountType() == Account.SAVINGS) {
+    			savingAccExists = true;
+    			savingType = a;
+    		}
+    	 }
+    	 
+    	 if (!checkingAccExists ) {
+    		 return "you do not have checking account to transfer from";
+    	 } else if(!savingAccExists) {
+    		 return "you do not have saving account to transfer to";
+    	 }
+    	 
+    	 if (checkingType.sumTransactions() > amount) {
+    		 checkingType.withdraw(amount);
+    		 savingType.deposit(amount);
+    	 } else {
+    		 s = "You do not have sufficient amount in your checking account to transfer";
+    	 }
+    	 return s;
+    }
 
+    public synchronized String transferFromSavingtoCheckings(double amount) {
+    	String s = "";
+    	if (amount < 0) {
+    		return "transfer amount cannot be less than 0";
+    	}
+    	boolean checkingAccExists = false;
+    	Account checkingType = null;
+    	Account savingType = null;
+    	boolean savingAccExists = false;
+    	 for (Account a : accounts) {
+    		if (a.getAccountType() == Account.CHECKING) {
+    			checkingAccExists = true;
+    			checkingType = a;
+    		} else if (a.getAccountType() == Account.SAVINGS) {
+    			savingAccExists = true;
+    			savingType = a;
+    		}
+    	 }
+    	 
+    	 if (!checkingAccExists ) {
+    		 return "you do not have checking account to transfer to";
+    	 } else if(!savingAccExists) {
+    		 return "you do not have saving account to transfer from";
+    	 }
+    	 
+    	 if (savingType.sumTransactions() > amount) {
+    		 savingType.withdraw(amount);
+    		 checkingType.deposit(amount);
+    	 } else {
+    		 s = "You do not have sufficient amount in your saving account to transfer";
+    	 }
+    	 return s;
+    }
+    
     private String statementForAccount(Account a) {
         String s = "";
 
@@ -65,8 +135,8 @@ public class Customer {
         //Now total up all the transactions
         double total = 0.0;
         for (Transaction t : a.transactions) {
-            s += "  " + (t.amount < 0 ? "withdrawal" : "deposit") + " " + toDollars(t.amount) + "\n";
-            total += t.amount;
+            s += "  " + (t.getAmount() < 0 ? "withdrawal" : "deposit") + " " + toDollars(t.getAmount()) + "\n";
+            total += t.getAmount();
         }
         s += "Total " + toDollars(total);
         return s;
